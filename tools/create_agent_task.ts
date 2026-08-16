@@ -2,11 +2,6 @@ import { tool } from "ai"
 import { z } from "zod"
 
 import { DEFAULT_AGENTS, getAgentById } from "@/lib/operator/agents"
-import {
-  disabledPersistence,
-  getSupabaseRuntimeUserId,
-  insertSupabaseRecord,
-} from "@/lib/supabase/persistence"
 
 const agentIdSchema = z.enum([
   "founder-chief-of-staff",
@@ -21,7 +16,7 @@ const agentIdSchema = z.enum([
 
 export const createAgentTask = tool({
   description:
-    "Create a visible task assigned to one of Chip's standing sub-agents. Use when work should be delegated, tracked, or converted into a Claude Code handoff.",
+    "Create a non-persistent draft task assigned to a standing sub-agent. This tool does not write to Supabase or trigger autonomous execution.",
   inputSchema: z.object({
     title: z.string().min(1),
     brief: z.string().min(1),
@@ -34,53 +29,23 @@ export const createAgentTask = tool({
     metadata: z.record(z.string(), z.unknown()).default({}),
   }),
   execute: async (input) => {
-    const now = new Date().toISOString()
     const agent = getAgentById(input.agent_id) ?? DEFAULT_AGENTS[0]
-    const taskId = crypto.randomUUID()
-    const userId = getSupabaseRuntimeUserId()
-
-    const task = {
-      id: taskId,
-      title: input.title,
-      brief: input.brief,
-      agent_id: agent.id,
-      agent_name: agent.name,
-      status: "draft",
-      priority: input.priority,
-      project_key: input.project_key ?? null,
-      acceptance_criteria: input.acceptance_criteria,
-      metadata: input.metadata,
-      created_at: now,
-    }
-
-    const persistence = userId
-      ? await insertSupabaseRecord("agent_tasks", {
-          user_id: userId,
-          title: input.title,
-          brief: input.brief,
-          status: "draft",
-          priority: input.priority,
-          project_key: input.project_key ?? null,
-          metadata: {
-            local_id: taskId,
-            agent_slug: agent.id,
-            agent_name: agent.name,
-            acceptance_criteria: input.acceptance_criteria,
-            ...input.metadata,
-          },
-        })
-      : disabledPersistence(
-          "SUPABASE_RUNTIME_USER_ID is not set, so this agent task was not written to Supabase."
-        )
-
     return {
-      task,
-      persistence,
-      message: persistence.enabled
-        ? persistence.error
-          ? "Agent task created locally, but Supabase persistence failed."
-          : "Agent task created and persisted to Supabase."
-        : "Agent task created locally. Supabase persistence is currently disabled or missing a runtime user id.",
+      task: {
+        id: crypto.randomUUID(),
+        title: input.title,
+        brief: input.brief,
+        agent_id: agent.id,
+        agent_name: agent.name,
+        status: "draft",
+        persistence: "not_persisted",
+        priority: input.priority,
+        project_key: input.project_key ?? null,
+        acceptance_criteria: input.acceptance_criteria,
+        metadata: input.metadata,
+        created_at: new Date().toISOString(),
+      },
+      message: "Agent task draft created in the current chat only. It has not been persisted or executed.",
     }
   },
 })
