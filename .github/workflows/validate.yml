@@ -20,8 +20,8 @@ jobs:
         with:
           node-version: 22
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prettier --check "**/*.{ts,tsx}"
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm exec prettier --check "**/*.{ts,tsx}"
