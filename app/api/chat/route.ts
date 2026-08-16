@@ -8,16 +8,16 @@ import {
 } from "ai"
 
 import { DEFAULT_MODEL, isModelAllowed } from "@/lib/models"
+import { buildFounderOperatorSystemPrompt } from "@/lib/operator/system-prompt"
 import { getTools, type ChatUIMessage } from "@/tools"
 
 export const maxDuration = 30
 
 const MAX_OUTPUT_TOKENS = 8192
 
-// This endpoint is public and spends your AI Gateway credits on every request.
-// Before exposing it to real traffic, add a rate limit (e.g. Vercel Firewall /
-// WAF or @upstash/ratelimit), authentication, and an AI Gateway spend limit.
-// See the README "Security" section.
+// This endpoint spends AI Gateway credits on every request.
+// Before exposing it beyond Chip's private use, add auth, rate limiting,
+// and the Supabase RLS-backed persistence flow documented in context/.
 export async function POST(req: Request) {
   let body: unknown
   try {
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: modelId,
+    system: buildFounderOperatorSystemPrompt(),
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: isStepCount(5),
