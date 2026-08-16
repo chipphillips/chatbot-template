@@ -1,98 +1,59 @@
-# Founder Operator Console
+# Founder Operator Console / MAX
 
-A private AI operating console built from the shadcn chatbot template. This app is being adapted for Chip Phillips as a solo-founder assistant for Constructiv AI, Wilson Lumber onboarding, Blue Hen analytics, KAS/canon work, design-system work, and relationship follow-through.
+MAX is a private AI operating console for a solo founder. The product combines a conversational command surface with durable work inventory, artifacts, approvals, knowledge review, visible delegation, and responsive mobile interaction.
 
-## Current foundation
+## Architectural invariant
 
-- Next.js
-- React
-- AI SDK
-- Vercel AI Gateway
-- shadcn/ui
-- shadcn/react
-- shadcn/typeset
-- Base UI
-- typed tool parts
-- provider-native web search
-- human-in-the-loop questionnaire flow
+AI SDK `UIMessage` plus typed tool/data parts is the single conversational runtime. Do not introduce a second transcript or another owner of tool lifecycle state.
 
-## Founder-console additions
+## Current branch direction
 
-This branch adds the foundation for:
+This product-shell branch adds:
 
-- private founder operating context
-- artifact creation via `create_artifact`
-- visible sub-agent task creation via `create_agent_task`
-- operator sidebar with artifacts, tasks, and standing agents
-- Supabase runtime schema migration drafts
-- opt-in Supabase persistence helper
-- context files for future Claude Code work
+- Supabase SSR authentication architecture using PKCE and cookie-backed sessions
+- responsive desktop/tablet/mobile MAX shell
+- layered system-prompt composition
+- onboarding and Setup Health surfaces
+- founder-scale Library architecture
+- attachment/image-generation data contracts
+- ordinary dictation architecture
+- local-only migration/RLS scaffolding
+- component map, ADRs, doctor tooling, CI quality checks, and visual QA preview routes
+
+The inherited root `/` chat still requires final auth cutover from the temporary private-session mechanism before this branch should be treated as merge-ready.
 
 ## Local development
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 cp .env.example .env.local
+pnpm doctor
 pnpm dev
 ```
 
-Local AI Gateway authentication can use either a Vercel-linked OIDC environment or `AI_GATEWAY_API_KEY`.
+Then use the real application routes after configuring local Supabase Auth. For visual review without credentials during development, visit `/preview`. Preview routes use fixture data, never write to Supabase, and return 404 in production.
 
-## Optional Supabase persistence
+## Safety rules
 
-Supabase writes are disabled by default.
+- Do not commit secrets.
+- Do not link, push, reset, or mutate a remote Supabase project from this branch without explicit approval.
+- Normal user-owned runtime writes must use verified Supabase Auth plus RLS, not a service-role key.
+- Do not trust `user_id` from request bodies for authorization.
+- External mutation tools must use AI SDK native execution approval on the exact mutating tool call.
+- Do not merge this branch until PR #1 and PR #2 are resolved and this branch is rebased and revalidated.
 
-```bash
-SUPABASE_PERSISTENCE_ENABLED=false
-```
+## Handoff and evidence
 
-To enable server-side runtime persistence after applying migrations and confirming the target project:
+Start with:
 
-```bash
-SUPABASE_PERSISTENCE_ENABLED=true
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-```
+- [`docs/handoff/README.md`](docs/handoff/README.md)
+- [`docs/getting-started.md`](docs/getting-started.md)
+- [`docs/ux/workflow-previews.md`](docs/ux/workflow-previews.md)
+- [`artifacts/validation/founder-console-validation.json`](artifacts/validation/founder-console-validation.json)
+- [`artifacts/live-state/github-branch-state.md`](artifacts/live-state/github-branch-state.md)
 
-Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
-
-## Supabase migrations
-
-Migration drafts live under:
-
-```txt
-supabase/migrations/
-```
-
-The first runtime migration creates:
-
-- `assistant_threads`
-- `assistant_messages`
-- `assistant_runs`
-- `assistant_tool_calls`
-- `assistant_forms`
-- `assistant_form_responses`
-- `agent_tasks`
-- `agent_runs`
-
-It also adds artifact linkage columns to `public.artifacts`.
-
-## Security posture
-
-The chat route spends AI Gateway credits. Before production/private daily use:
-
-1. Add authentication.
-2. Add rate limiting.
-3. Apply and verify RLS policies.
-4. Keep Supabase service role usage server-only.
-5. Require explicit approval for GitHub, Supabase, Notion, email, and calendar writes.
-
-## Context files
-
-Future agents should read:
+Future coding agents must also read:
 
 - `context/Memory.md`
 - `context/Claude.md`
 - `context/INSTRUCTIONS.md`
-
-These define product purpose, safety boundaries, object names, and validation expectations.
