@@ -37,10 +37,10 @@ jobs:
             --exclude=.git \
             --exclude=node_modules \
             --exclude=.next \
-            -czf product-shell-source.tar.gz .
+            -czf "$RUNNER_TEMP/product-shell-source.tar.gz" .
       - uses: actions/upload-artifact@v4
         with:
           name: product-shell-source
-          path: product-shell-source.tar.gz
+          path: ${{ runner.temp }}/product-shell-source.tar.gz
           if-no-files-found: error
           retention-days: 3
