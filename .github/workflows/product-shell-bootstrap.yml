@@ -12,7 +12,7 @@ permissions:
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable
@@ -31,16 +31,23 @@ jobs:
           pnpm test
           pnpm build
           pnpm exec prettier --check .
-      - name: Package normalized source
+      - name: Package normalized source and validated dependencies
         run: |
           tar \
             --exclude=.git \
             --exclude=node_modules \
             --exclude=.next \
             -czf "$RUNNER_TEMP/product-shell-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/product-shell-node-modules.tar.gz" node_modules
       - uses: actions/upload-artifact@v4
         with:
           name: product-shell-source
           path: ${{ runner.temp }}/product-shell-source.tar.gz
           if-no-files-found: error
           retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-shell-node-modules
+          path: ${{ runner.temp }}/product-shell-node-modules.tar.gz
+          if-no-files-found: error
+          retention-days: 1
