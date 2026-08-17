@@ -34,11 +34,15 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-6">
-      <form className="w-full space-y-4 rounded-2xl border p-6" onSubmit={submit}>
+      <form
+        className="w-full space-y-4 rounded-2xl border p-6"
+        onSubmit={submit}
+      >
         <div>
           <h1 className="text-xl font-semibold">Founder Console</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Enter the private deployment access key. It is stored only in an HttpOnly session cookie.
+            Enter the private deployment access key. It is stored only in an
+            HttpOnly session cookie.
           </p>
         </div>
         <input
@@ -50,7 +54,11 @@ export default function LoginPage() {
           value={accessKey}
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button className="w-full" disabled={busy || accessKey.length === 0} type="submit">
+        <Button
+          className="w-full"
+          disabled={busy || accessKey.length === 0}
+          type="submit"
+        >
           {busy ? "Checking…" : "Open console"}
         </Button>
       </form>

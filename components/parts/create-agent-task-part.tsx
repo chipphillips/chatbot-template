@@ -3,14 +3,19 @@ import { CheckCircle2Icon, UserRoundCheckIcon } from "lucide-react"
 import { type CreateAgentTaskToolPart } from "@/tools"
 import { Spinner } from "@/components/ui/spinner"
 
-export function CreateAgentTaskPart({ part }: { part: CreateAgentTaskToolPart }) {
+export function CreateAgentTaskPart({
+  part,
+}: {
+  part: CreateAgentTaskToolPart
+}) {
   switch (part.state) {
     case "input-streaming":
     case "input-available":
       return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner />
-          Assigning agent task{part.input?.title ? `: ${part.input.title}` : ""}…
+          Assigning agent task{part.input?.title ? `: ${part.input.title}` : ""}
+          …
         </div>
       )
     case "output-available": {
@@ -26,7 +31,7 @@ export function CreateAgentTaskPart({ part }: { part: CreateAgentTaskToolPart })
                 <p className="font-medium">{task.title}</p>
                 <CheckCircle2Icon className="size-4 text-muted-foreground" />
               </div>
-              <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <p className="mt-1 text-xs tracking-wide text-muted-foreground uppercase">
                 {task.agent_name} · {task.priority} · {task.status}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">{message}</p>

@@ -10,6 +10,7 @@ import "server-only"
 export function runtimePersistenceStatus() {
   return {
     enabled: false as const,
-    reason: "Runtime persistence is not wired until authenticated RLS access is implemented.",
+    reason:
+      "Runtime persistence is not wired until authenticated RLS access is implemented.",
   }
 }

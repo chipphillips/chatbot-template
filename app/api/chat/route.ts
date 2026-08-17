@@ -44,7 +44,10 @@ export async function POST(req: Request) {
   const modelId = typeof model === "string" ? model : DEFAULT_MODEL
 
   if (!isModelAllowed(modelId)) {
-    return Response.json({ error: "Requested model is not available." }, { status: 400 })
+    return Response.json(
+      { error: "Requested model is not available." },
+      { status: 400 }
+    )
   }
 
   const tools = getTools(modelId)

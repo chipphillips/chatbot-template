@@ -14,7 +14,14 @@ const artifactTypeSchema = z.enum([
   "other",
 ])
 
-const artifactFormatSchema = z.enum(["markdown", "json", "text", "tsx", "sql", "yaml"])
+const artifactFormatSchema = z.enum([
+  "markdown",
+  "json",
+  "text",
+  "tsx",
+  "sql",
+  "yaml",
+])
 
 function slugify(value: string) {
   return value
@@ -33,7 +40,14 @@ export const createArtifact = tool({
     format: artifactFormatSchema.default("markdown"),
     body: z.string().min(1),
     project_key: z
-      .enum(["constructiv", "wilson", "blue_hen", "kas", "design_system", "personal"])
+      .enum([
+        "constructiv",
+        "wilson",
+        "blue_hen",
+        "kas",
+        "design_system",
+        "personal",
+      ])
       .optional(),
     metadata: z.record(z.string(), z.unknown()).default({}),
   }),
@@ -53,7 +67,8 @@ export const createArtifact = tool({
         persistence: "not_persisted",
         created_at: new Date().toISOString(),
       },
-      message: "Artifact draft created in the current chat only. It has not been persisted externally.",
+      message:
+        "Artifact draft created in the current chat only. It has not been persisted externally.",
     }
   },
 })
