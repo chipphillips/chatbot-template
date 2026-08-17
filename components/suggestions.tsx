@@ -4,23 +4,24 @@ import { Button } from "@/components/ui/button"
 
 const suggestions = [
   {
-    label: "Tell me a story",
+    label: "Wilson brief",
     prompt:
-      "Tell me a short story. Format it in rich markdown: a title heading, a blockquote, a bulleted list, a table, and some bold and italic text.",
+      "Create a Wilson Lumber onboarding brief as an artifact, then assign follow-up work to the Constructiv Product Agent.",
   },
   {
-    label: "What's new in Next.js",
+    label: "Claude prompt",
     prompt:
-      "Search the web for the latest Next.js release and summarize what's new.",
+      "Turn my current goal into a Master Execution Prompt for Claude Code and save it as an artifact.",
   },
   {
-    label: "Look up a repo",
-    prompt: "What are the GitHub stats for vercel/next.js?",
+    label: "Schema plan",
+    prompt:
+      "Help me design the safest Supabase setup for chat persistence. Ask only the questions that materially change the schema.",
   },
   {
-    label: "Plan a dinner",
+    label: "Agent tasks",
     prompt:
-      "Help me plan a birthday dinner — ask me a few clarifying questions first, then suggest a menu.",
+      "Break my current Constructiv priorities into sub-agent tasks with acceptance criteria.",
   },
 ]
 
