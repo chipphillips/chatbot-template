@@ -1,0 +1,57 @@
+name: PR2 one-time forward integration artifact
+
+on:
+  push:
+    branches:
+      - feat/operator-approval-knowledge-harness
+
+permissions:
+  contents: read
+
+jobs:
+  integrate-format-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify and integrate PR1 head
+        run: |
+          git fetch --no-tags origin feat/founder-operator-console-foundation:refs/remotes/origin/foundation
+          test "$(git rev-parse refs/remotes/origin/foundation)" = "8ef181ba14923d433b4cb3966e1b3f96555eabc7"
+          git merge --no-commit --no-ff -Xignore-all-space refs/remotes/origin/foundation
+      - run: pnpm install --frozen-lockfile
+      - name: Normalize TypeScript formatting
+        run: pnpm exec prettier --write "**/*.{ts,tsx}"
+      - name: Remove one-time workflow from proposed tree
+        run: git rm .github/workflows/pr2-forward-format-artifact.yml
+      - name: Validate integrated source
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+          pnpm build
+          pnpm exec prettier --check "**/*.{ts,tsx}"
+      - name: Package proposed merge tree and manifest
+        run: |
+          git add -A
+          git diff --cached --name-status > "$RUNNER_TEMP/changed-files.tsv"
+          tar \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=.next \
+            -czf "$RUNNER_TEMP/pr2-integrated-source.tar.gz" .
+          mkdir -p "$RUNNER_TEMP/pr2-artifact"
+          cp "$RUNNER_TEMP/changed-files.tsv" "$RUNNER_TEMP/pr2-artifact/"
+          cp "$RUNNER_TEMP/pr2-integrated-source.tar.gz" "$RUNNER_TEMP/pr2-artifact/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr2-integrated-source
+          path: ${{ runner.temp }}/pr2-artifact
+          if-no-files-found: error
+          retention-days: 1
