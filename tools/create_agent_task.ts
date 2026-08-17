@@ -23,7 +23,14 @@ export const createAgentTask = tool({
     agent_id: agentIdSchema,
     priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
     project_key: z
-      .enum(["constructiv", "wilson", "blue_hen", "kas", "design_system", "personal"])
+      .enum([
+        "constructiv",
+        "wilson",
+        "blue_hen",
+        "kas",
+        "design_system",
+        "personal",
+      ])
       .optional(),
     acceptance_criteria: z.array(z.string()).default([]),
     metadata: z.record(z.string(), z.unknown()).default({}),
@@ -45,7 +52,8 @@ export const createAgentTask = tool({
         metadata: input.metadata,
         created_at: new Date().toISOString(),
       },
-      message: "Agent task draft created in the current chat only. It has not been persisted or executed.",
+      message:
+        "Agent task draft created in the current chat only. It has not been persisted or executed.",
     }
   },
 })

@@ -21,7 +21,16 @@ export const proposeKnowledgeItem = tool({
     summary: z.string().min(1),
     content: z.string().min(1),
     promotion_target: z
-      .enum(["memory", "decision", "business_canon", "design_system", "knowledge_graph", "notion", "supabase", "none"])
+      .enum([
+        "memory",
+        "decision",
+        "business_canon",
+        "design_system",
+        "knowledge_graph",
+        "notion",
+        "supabase",
+        "none",
+      ])
       .default("none"),
     confidence: z.enum(["low", "medium", "high"]).default("medium"),
     source_refs: z.array(z.string()).default([]),
@@ -34,6 +43,7 @@ export const proposeKnowledgeItem = tool({
       created_at: new Date().toISOString(),
       ...input,
     },
-    message: "Knowledge proposal created in the current chat only. Promotion is not implemented.",
+    message:
+      "Knowledge proposal created in the current chat only. Promotion is not implemented.",
   }),
 })

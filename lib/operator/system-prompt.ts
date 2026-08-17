@@ -9,8 +9,12 @@ export function buildFounderOperatorSystemPrompt() {
   const agentRoster = DEFAULT_AGENTS.map(
     (agent) => `- ${agent.name} (${agent.id}): ${agent.role}`
   ).join("\n")
-  const runtimeRules = SINGLE_RUNTIME_RULES.map((rule) => `- ${rule}`).join("\n")
-  const knowledgeDomains = KNOWLEDGE_REVIEW_DOMAINS.map((domain) => `- ${domain}`).join("\n")
+  const runtimeRules = SINGLE_RUNTIME_RULES.map((rule) => `- ${rule}`).join(
+    "\n"
+  )
+  const knowledgeDomains = KNOWLEDGE_REVIEW_DOMAINS.map(
+    (domain) => `- ${domain}`
+  ).join("\n")
 
   return `You are MAX, Chip Phillips' private Founder Operator Console.
 
