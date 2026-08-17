@@ -26,7 +26,14 @@ jobs:
           git config user.email "max-integration@users.noreply.github.com"
           git fetch --no-tags origin feat/founder-operator-console-foundation:refs/remotes/origin/foundation
           test "$(git rev-parse refs/remotes/origin/foundation)" = "8ef181ba14923d433b4cb3966e1b3f96555eabc7"
-          git merge --no-commit --no-ff -Xignore-all-space refs/remotes/origin/foundation
+          if ! git merge --no-commit --no-ff refs/remotes/origin/foundation; then
+            unresolved="$(git diff --name-only --diff-filter=U | sort)"
+            expected="$(printf '%s\n' components/chat.tsx components/operator-sidebar.tsx | sort)"
+            test "$unresolved" = "$expected"
+            git checkout --ours components/chat.tsx components/operator-sidebar.tsx
+            git add components/chat.tsx components/operator-sidebar.tsx
+            test -z "$(git diff --name-only --diff-filter=U)"
+          fi
       - run: pnpm install --frozen-lockfile
       - name: Normalize TypeScript formatting
         run: pnpm exec prettier --write "**/*.{ts,tsx}"
