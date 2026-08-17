@@ -1,0 +1,48 @@
+name: PR3 one-time forward integration
+
+on:
+  push:
+    branches:
+      - feat/founder-console-product-shell
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-validate-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Integrate exact PR2 head
+        run: |
+          git config user.name "MAX integration bot"
+          git config user.email "max-integration@users.noreply.github.com"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git fetch --no-tags origin feat/operator-approval-knowledge-harness:refs/remotes/origin/operator-harness
+          test "$(git rev-parse refs/remotes/origin/operator-harness)" = "3e5c161aedaaede8fbcf9da69db7dbb679e74577"
+          git merge --no-commit --no-ff refs/remotes/origin/operator-harness
+      - run: pnpm install --frozen-lockfile
+      - name: Normalize TypeScript formatting
+        run: pnpm exec prettier --write "**/*.{ts,tsx}"
+      - name: Remove one-time workflow from final tree
+        run: git rm .github/workflows/pr3-forward-integration.yml
+      - name: Validate integrated source
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+          pnpm build
+          pnpm exec prettier --check "**/*.{ts,tsx}"
+      - name: Commit and push validated integration
+        run: |
+          git add -A
+          git diff --cached --check
+          git commit -m "chore: forward-integrate approval harness"
+          git push origin HEAD:feat/founder-console-product-shell
