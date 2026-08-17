@@ -26,10 +26,12 @@ export function CreateArtifactPart({ part }: { part: CreateArtifactToolPart }) {
                 <p className="font-medium">{output.artifact.title}</p>
                 <CheckCircle2Icon className="size-4 text-muted-foreground" />
               </div>
-              <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <p className="mt-1 text-xs tracking-wide text-muted-foreground uppercase">
                 {output.artifact.kind} · {output.artifact.format}
               </p>
-              <p className="mt-2 text-sm text-muted-foreground">{output.message}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {output.message}
+              </p>
             </div>
           </div>
         </div>

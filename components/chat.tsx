@@ -63,8 +63,9 @@ export function Chat({ models }: { models: GatewayModel[] }) {
               <EmptyHeader>
                 <EmptyTitle>What needs to get done?</EmptyTitle>
                 <EmptyDescription>
-                  MAX can create artifacts, assign sub-agent tasks, ask structured
-                  questions, search sources, and keep execution work visible.
+                  MAX can create artifacts, assign sub-agent tasks, ask
+                  structured questions, search sources, and keep execution work
+                  visible.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>

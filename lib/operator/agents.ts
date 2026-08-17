@@ -1,10 +1,5 @@
 export type OperatorProjectKey =
-  | "constructiv"
-  | "wilson"
-  | "blue_hen"
-  | "kas"
-  | "design_system"
-  | "personal"
+  "constructiv" | "wilson" | "blue_hen" | "kas" | "design_system" | "personal"
 
 export interface OperatorAgent {
   id: string
@@ -21,8 +16,20 @@ export const DEFAULT_AGENTS: OperatorAgent[] = [
     id: "founder-chief-of-staff",
     name: "Founder Chief of Staff",
     role: "Turns messy context into decisions, tasks, follow-ups, and execution prompts.",
-    projectKeys: ["constructiv", "wilson", "blue_hen", "kas", "design_system", "personal"],
-    allowedTools: ["create_artifact", "create_agent_task", "ask_user", "web_search"],
+    projectKeys: [
+      "constructiv",
+      "wilson",
+      "blue_hen",
+      "kas",
+      "design_system",
+      "personal",
+    ],
+    allowedTools: [
+      "create_artifact",
+      "create_agent_task",
+      "ask_user",
+      "web_search",
+    ],
     outputTypes: ["brief", "decision", "task_plan", "master_execution_prompt"],
     writePolicy: "approval_required",
   },
@@ -40,8 +47,18 @@ export const DEFAULT_AGENTS: OperatorAgent[] = [
     name: "GitHub Review Agent",
     role: "Reviews repository changes, PRs, CI posture, and source-of-truth boundaries.",
     projectKeys: ["constructiv", "kas", "design_system"],
-    allowedTools: ["github_repo", "create_artifact", "create_agent_task", "web_search"],
-    outputTypes: ["review", "must_fix_list", "safe_followups", "master_execution_prompt"],
+    allowedTools: [
+      "github_repo",
+      "create_artifact",
+      "create_agent_task",
+      "web_search",
+    ],
+    outputTypes: [
+      "review",
+      "must_fix_list",
+      "safe_followups",
+      "master_execution_prompt",
+    ],
     writePolicy: "approval_required",
   },
   {
