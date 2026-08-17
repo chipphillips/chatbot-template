@@ -1,0 +1,15 @@
+{
+  "captured_at": "2026-08-16T22:00:00Z",
+  "branch": "feat/founder-console-product-shell",
+  "checks": [
+    {"name":"typescript","command":"./node_modules/.bin/tsc --noEmit","status":"passed","exit_code":0},
+    {"name":"eslint","command":"./node_modules/.bin/eslint .","status":"passed","exit_code":0},
+    {"name":"node-tests","command":"node --test tests/*.test.mjs","status":"passed","exit_code":0,"tests":6},
+    {"name":"next-build","command":"./node_modules/.bin/next build","status":"passed","exit_code":0},
+    {"name":"prettier","command":"./node_modules/.bin/prettier --check ...","status":"passed","exit_code":0},
+    {"name":"supabase-local-reset","status":"not_run","reason":"local Supabase services were not available in this execution environment"},
+    {"name":"exact-browser-screenshots","status":"blocked","reason":"headless Chromium navigation blocked by execution-environment administrator policy"}
+  ],
+  "remote_supabase_mutated": false,
+  "merged": false
+}

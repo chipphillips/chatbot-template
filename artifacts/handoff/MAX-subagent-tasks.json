@@ -1,0 +1,11 @@
+{
+  "version":"1.0",
+  "project":"Founder Operator Console / MAX",
+  "branch":"feat/founder-console-product-shell",
+  "tasks":[
+    {"id":"validation-closure","role":"deterministic validation agent","scope":["formatting","typecheck","lint","tests","build","validation receipts"],"write_policy":"branch-only","acceptance_criteria":["All executable checks pass","Skipped checks remain explicitly marked","No test weakening"]},
+    {"id":"auth-rls-review","role":"authentication and RLS security reviewer","scope":["Supabase SSR auth","verified identity","RLS","protected APIs","root chat auth cutover"],"write_policy":"branch-only; local Supabase only","acceptance_criteria":["No request-body identity trust","No normal service-role writes","Two-user RLS isolation proven locally"]},
+    {"id":"responsive-a11y-qa","role":"responsive and accessibility QA agent","scope":["320-1728px matrix","keyboard","focus","dialogs","safe areas","reduced motion"],"write_policy":"tests and branch fixes only","acceptance_criteria":["No horizontal overflow","Mobile navigation usable","Visible focus and labeled dialogs"]},
+    {"id":"mobbin-evidence","role":"UX evidence curator","scope":["Mobbin reference links","interaction principles","non-mimicry rationale"],"write_policy":"docs only","acceptance_criteria":["Reference exact screens/flows","State principle borrowed","Do not claim pixel mimicry"]}
+  ]
+}

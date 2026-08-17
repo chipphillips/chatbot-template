@@ -1,0 +1,53 @@
+name: Product shell bootstrap artifact
+
+on:
+  push:
+    branches:
+      - feat/founder-console-product-shell
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve approved Supabase dependencies
+        run: pnpm add @supabase/supabase-js@^2.111.0 @supabase/ssr@^0.12.4
+      - name: Normalize source formatting
+        run: pnpm exec prettier --write .
+      - name: Verify normalized foundation
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+          pnpm build
+          pnpm exec prettier --check .
+      - name: Package normalized source and validated dependencies
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=.next \
+            -czf "$RUNNER_TEMP/product-shell-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/product-shell-node-modules.tar.gz" node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-shell-source
+          path: ${{ runner.temp }}/product-shell-source.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: product-shell-node-modules
+          path: ${{ runner.temp }}/product-shell-node-modules.tar.gz
+          if-no-files-found: error
+          retention-days: 1
