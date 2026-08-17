@@ -22,6 +22,8 @@ jobs:
           node-version: 22
       - name: Verify and integrate PR1 head
         run: |
+          git config user.name "MAX integration bot"
+          git config user.email "max-integration@users.noreply.github.com"
           git fetch --no-tags origin feat/founder-operator-console-foundation:refs/remotes/origin/foundation
           test "$(git rev-parse refs/remotes/origin/foundation)" = "8ef181ba14923d433b4cb3966e1b3f96555eabc7"
           git merge --no-commit --no-ff -Xignore-all-space refs/remotes/origin/foundation
