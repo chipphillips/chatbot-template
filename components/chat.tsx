@@ -3,9 +3,10 @@
 import * as React from "react"
 import { useChat } from "@ai-sdk/react"
 import { lastAssistantMessageIsCompleteWithToolCalls } from "ai"
-import { type GatewayModel } from "@/lib/models"
-import { type ChatUIMessage } from "@/tools"
+
+import { ApprovalCard } from "@/components/approval-card"
 import { ChatMessage } from "@/components/chat-message"
+import { KnowledgeReviewCard } from "@/components/knowledge-review-card"
 import { OperatorSidebar } from "@/components/operator-sidebar"
 import { PromptForm } from "@/components/prompt-form"
 import { QuestionCard } from "@/components/question-card"
@@ -26,33 +27,39 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
+import { type GatewayModel } from "@/lib/models"
+import { type ChatUIMessage } from "@/tools"
 
 export function Chat({ models }: { models: GatewayModel[] }) {
   const [model, setModel] = React.useState(models[0]?.id ?? "")
-
   const { messages, sendMessage, status, stop, error, addToolOutput } =
     useChat<ChatUIMessage>({
-      // Resume the conversation automatically once the user has answered the
-      // ask_user questionnaire.
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     })
 
-  const resolvedModel = models.some((m) => m.id === model)
+  const resolvedModel = models.some((candidate) => candidate.id === model)
     ? model
     : (models[0]?.id ?? "")
-
   const isBusy = status === "submitted" || status === "streaming"
-
   const lastMessage = messages.at(-1)
-  const pendingQuestion =
+
+  const pendingParts =
     lastMessage?.role === "assistant"
-      ? lastMessage.parts.find(
-          (part): part is Extract<typeof part, { type: "tool-ask_user" }> =>
-            part.type === "tool-ask_user" &&
-            (part.state === "input-streaming" ||
-              part.state === "input-available")
-        )
-      : undefined
+      ? lastMessage.parts.flatMap((part) => {
+          if (
+            part.type !== "tool-ask_user" &&
+            part.type !== "tool-request_approval" &&
+            part.type !== "tool-review_knowledge_item"
+          ) {
+            return []
+          }
+
+          return part.state === "input-streaming" ||
+            part.state === "input-available"
+            ? [part]
+            : []
+        })
+      : []
 
   return (
     <div className="grid min-h-0 w-full flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -63,9 +70,9 @@ export function Chat({ models }: { models: GatewayModel[] }) {
               <EmptyHeader>
                 <EmptyTitle>What needs to get done?</EmptyTitle>
                 <EmptyDescription>
-                  MAX can create artifacts, assign sub-agent tasks, ask
-                  structured questions, search sources, and keep execution work
-                  visible.
+                  MAX can create draft artifacts, propose knowledge, request
+                  structured feedback, assign draft sub-agent tasks, and search
+                  sources.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
@@ -105,19 +112,59 @@ export function Chat({ models }: { models: GatewayModel[] }) {
                     </MessageScrollerItem>
                   )}
                 </MessageScrollerContent>
-                {pendingQuestion && (
-                  <QuestionCard
-                    part={pendingQuestion}
-                    onAnswer={(toolCallId, answer) =>
-                      addToolOutput({
-                        tool: "ask_user",
-                        toolCallId,
-                        output: answer,
-                        options: { body: { model: resolvedModel } },
-                      })
+
+                <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 px-6 pb-2">
+                  {pendingParts.map((part) => {
+                    if (part.type === "tool-ask_user") {
+                      return (
+                        <QuestionCard
+                          key={part.toolCallId}
+                          part={part}
+                          onAnswer={(toolCallId, answer) =>
+                            addToolOutput({
+                              tool: "ask_user",
+                              toolCallId,
+                              output: answer,
+                              options: { body: { model: resolvedModel } },
+                            })
+                          }
+                        />
+                      )
                     }
-                  />
-                )}
+
+                    if (part.type === "tool-request_approval") {
+                      return (
+                        <ApprovalCard
+                          key={part.toolCallId}
+                          part={part}
+                          onDecision={(toolCallId, decision) =>
+                            addToolOutput({
+                              tool: "request_approval",
+                              toolCallId,
+                              output: decision,
+                              options: { body: { model: resolvedModel } },
+                            })
+                          }
+                        />
+                      )
+                    }
+
+                    return (
+                      <KnowledgeReviewCard
+                        key={part.toolCallId}
+                        part={part}
+                        onDecision={(toolCallId, decision) =>
+                          addToolOutput({
+                            tool: "review_knowledge_item",
+                            toolCallId,
+                            output: decision,
+                            options: { body: { model: resolvedModel } },
+                          })
+                        }
+                      />
+                    )
+                  })}
+                </div>
               </MessageScrollerViewport>
               <MessageScrollerButton />
             </MessageScroller>

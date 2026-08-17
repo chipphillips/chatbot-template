@@ -7,65 +7,107 @@ import { type ChatUIMessage } from "@/tools"
 
 function collectArtifacts(messages: ChatUIMessage[]) {
   return messages.flatMap((message) =>
-    message.parts.flatMap((part) => {
-      if (
-        part.type !== "tool-create_artifact" ||
-        part.state !== "output-available"
-      )
-        return []
-      return [part.output.artifact]
-    })
+    message.parts.flatMap((part) =>
+      part.type === "tool-create_artifact" && part.state === "output-available"
+        ? [part.output.artifact]
+        : []
+    )
   )
 }
-
 function collectTasks(messages: ChatUIMessage[]) {
+  return messages.flatMap((message) =>
+    message.parts.flatMap((part) =>
+      part.type === "tool-create_agent_task" &&
+      part.state === "output-available"
+        ? [part.output.task]
+        : []
+    )
+  )
+}
+function collectKnowledge(messages: ChatUIMessage[]) {
   return messages.flatMap((message) =>
     message.parts.flatMap((part) => {
       if (
-        part.type !== "tool-create_agent_task" ||
-        part.state !== "output-available"
+        part.type === "tool-propose_knowledge_item" &&
+        part.state === "output-available"
       )
-        return []
-      return [part.output.task]
+        return [
+          {
+            id: part.output.item.id,
+            title: part.output.item.title,
+            domain: part.output.item.domain,
+            topic: part.output.item.topic,
+            state: "proposed",
+          },
+        ]
+      if (
+        part.type === "tool-review_knowledge_item" &&
+        part.state === "output-available"
+      )
+        return [
+          {
+            id: part.input.knowledge_item_id,
+            title: part.input.title,
+            domain: part.input.domain,
+            topic: part.input.topic,
+            state: part.output.decision,
+          },
+        ]
+      return []
     })
+  )
+}
+function collectPreflight(messages: ChatUIMessage[]) {
+  return messages.flatMap((message) =>
+    message.parts.flatMap((part) =>
+      part.type === "tool-request_approval" && part.state === "output-available"
+        ? [
+            {
+              id: part.toolCallId,
+              title: part.input.title,
+              target: part.input.target_system,
+              state: part.output.decision,
+            },
+          ]
+        : []
+    )
   )
 }
 
 export function OperatorSidebar({ messages }: { messages: ChatUIMessage[] }) {
   const artifacts = collectArtifacts(messages)
   const tasks = collectTasks(messages)
-
+  const knowledge = collectKnowledge(messages)
+  const preflight = collectPreflight(messages)
   return (
     <aside className="hidden min-h-0 border-l bg-muted/20 lg:flex lg:w-[380px] lg:flex-col">
       <div className="border-b p-4">
         <p className="text-sm font-semibold">Founder Console</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Draft artifacts and delegated work stay visible instead of getting
-          buried in chat.
+          Typed AI SDK parts keep drafts, feedback, knowledge review, and
+          sub-agent work in one visible runtime.
         </p>
       </div>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-            <FileTextIcon className="size-4" />
-            Artifacts
+            <ClipboardCheckIcon className="size-4" />
+            Preflight Feedback
           </div>
-          {artifacts.length === 0 ? (
+          {preflight.length === 0 ? (
             <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-              No artifact drafts yet.
+              No plan feedback yet.
             </p>
           ) : (
             <div className="space-y-2">
-              {artifacts.map((artifact) => (
+              {preflight.map((item) => (
                 <article
-                  key={artifact.id}
+                  key={item.id}
                   className="rounded-lg border bg-background p-3"
                 >
-                  <p className="line-clamp-2 text-sm font-medium">
-                    {artifact.title}
-                  </p>
-                  <p className="mt-1 text-xs tracking-wide text-muted-foreground uppercase">
-                    {artifact.kind} · {artifact.format} · draft
+                  <p className="text-sm font-medium">{item.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {item.target} · {item.state}
                   </p>
                 </article>
               ))}
@@ -74,29 +116,66 @@ export function OperatorSidebar({ messages }: { messages: ChatUIMessage[] }) {
         </section>
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-            <ClipboardCheckIcon className="size-4" />
-            Agent Tasks
+            <FileTextIcon className="size-4" />
+            Knowledge
           </div>
-          {tasks.length === 0 ? (
+          {knowledge.length === 0 ? (
             <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-              No delegated task drafts yet.
+              No knowledge proposals yet.
             </p>
           ) : (
             <div className="space-y-2">
-              {tasks.map((task) => (
+              {knowledge.map((item, index) => (
                 <article
-                  key={task.id}
+                  key={`${item.id}-${index}`}
                   className="rounded-lg border bg-background p-3"
                 >
-                  <p className="line-clamp-2 text-sm font-medium">
-                    {task.title}
-                  </p>
-                  <p className="mt-1 text-xs tracking-wide text-muted-foreground uppercase">
-                    {task.agent_name} · {task.priority} · draft
+                  <p className="text-sm font-medium">{item.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {item.domain} · {item.topic} · {item.state}
                   </p>
                 </article>
               ))}
             </div>
+          )}
+        </section>
+        <section>
+          <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <FileTextIcon className="size-4" />
+            Artifacts
+          </div>
+          {artifacts.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No drafts.</p>
+          ) : (
+            artifacts.map((item) => (
+              <article
+                key={item.id}
+                className="mb-2 rounded-lg border bg-background p-3"
+              >
+                <p className="text-sm font-medium">{item.title}</p>
+              </article>
+            ))
+          )}
+        </section>
+        <section>
+          <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <ClipboardCheckIcon className="size-4" />
+            Agent Tasks
+          </div>
+          {tasks.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No drafts.</p>
+          ) : (
+            tasks.map((item) => (
+              <article
+                key={item.id}
+                className="mb-2 rounded-lg border bg-background p-3"
+              >
+                <p className="text-sm font-medium">{item.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {item.agent_name}
+                </p>
+              </article>
+            ))
           )}
         </section>
         <section>
@@ -111,7 +190,7 @@ export function OperatorSidebar({ messages }: { messages: ChatUIMessage[] }) {
                 className="rounded-lg border bg-background p-3"
               >
                 <p className="text-sm font-medium">{agent.name}</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {agent.role}
                 </p>
               </article>
