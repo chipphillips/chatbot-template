@@ -1,4 +1,4 @@
-name: PR2 one-time forward integration artifact
+name: PR2 one-time forward integration
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - feat/operator-approval-knowledge-harness
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   integrate-format-validate:
@@ -24,6 +24,7 @@ jobs:
         run: |
           git config user.name "MAX integration bot"
           git config user.email "max-integration@users.noreply.github.com"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git fetch --no-tags origin feat/founder-operator-console-foundation:refs/remotes/origin/foundation
           test "$(git rev-parse refs/remotes/origin/foundation)" = "8ef181ba14923d433b4cb3966e1b3f96555eabc7"
           if ! git merge --no-commit --no-ff refs/remotes/origin/foundation; then
@@ -37,7 +38,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Normalize TypeScript formatting
         run: pnpm exec prettier --write "**/*.{ts,tsx}"
-      - name: Remove one-time workflow from proposed tree
+      - name: Remove one-time workflow from final tree
         run: git rm .github/workflows/pr2-forward-format-artifact.yml
       - name: Validate integrated source
         run: |
@@ -46,21 +47,9 @@ jobs:
           pnpm test
           pnpm build
           pnpm exec prettier --check "**/*.{ts,tsx}"
-      - name: Package proposed merge tree and manifest
+      - name: Commit and push the validated stack integration
         run: |
           git add -A
-          git diff --cached --name-status > "$RUNNER_TEMP/changed-files.tsv"
-          tar \
-            --exclude=.git \
-            --exclude=node_modules \
-            --exclude=.next \
-            -czf "$RUNNER_TEMP/pr2-integrated-source.tar.gz" .
-          mkdir -p "$RUNNER_TEMP/pr2-artifact"
-          cp "$RUNNER_TEMP/changed-files.tsv" "$RUNNER_TEMP/pr2-artifact/"
-          cp "$RUNNER_TEMP/pr2-integrated-source.tar.gz" "$RUNNER_TEMP/pr2-artifact/"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pr2-integrated-source
-          path: ${{ runner.temp }}/pr2-artifact
-          if-no-files-found: error
-          retention-days: 1
+          git diff --cached --check
+          git commit -m "style: integrate foundation formatting"
+          git push origin HEAD:feat/operator-approval-knowledge-harness
